@@ -1,5 +1,6 @@
 import requests
 from io import BytesIO
+from pathlib import Path
 
 
 class LocalImage:
@@ -40,3 +41,20 @@ class _LoremFlickr(RemoteImage):
 
 
 KeywordImage = _LoremFlickr
+
+
+# コンストラクタとして利用するため
+# 単語を大文字始まりにしてクラスのように見せる
+def ImageSource(keyword):
+    """最適なイメージソースクラスを返す"""
+    if keyword.startswith(('http://', 'https://')):
+        return RemoteImage(keyword)
+    elif Path(keyword).exists():
+        return LocalImage(keyword)
+    else:
+        return KeywordImage(keyword)
+
+
+def get_image(keyword):
+    """画像のファイルオブジェクトを返す"""
+    return ImageSource(keyword).get_image()
