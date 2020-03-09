@@ -1,34 +1,21 @@
-version: 2
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
 jobs:
- setup_dependencies:
-   docker:
-     - image: circleci/python:3.8.1
-   steps:
-     - checkout
-     - restore_cache:
-         key: deps-{{ checksum "requirements.lock" }}
-     - run:
-         command: |
-           pip install --user -r requirements.lock
-     - save_cache:
-         key: deps-{{ checksum "requirements.lock" }}
-         paths:
-           - "~/.local"
- test:
-   docker:
-     - image: circleci/python:3.8.1
-   steps:
-     - checkout
-     - restore_cache:
-         key: deps-{{ checksum "requirements.lock" }}
-     - run:
-         command: |
-           python3 -m unittest -v
+  build-and-test:
+    executor: python/default
+    steps:
+      - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
+      - run:
+          command: ./manage.py test
+          name: Test
+
 workflows:
-  version: 2
-  all:
+  main:
     jobs:
-      - setup_dependencies
-      - test:
-          requires:
-            - setup_dependencies
+      - build-and-test
